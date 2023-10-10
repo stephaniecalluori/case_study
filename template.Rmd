@@ -1,6 +1,6 @@
 ---
 title: "Simple document"
-output: github_document
+output: html_document
 ---
 
 I'm an R Markdown document! 
@@ -10,6 +10,7 @@ devtools::install_github("p8105/p8105.datasets")
 
 library(p8105.datasets)
 library(tidyverse)
+library(ggridges)
 data(nyc_airbnb)
 ```
 
@@ -128,4 +129,65 @@ nyc_airbnb |>
   ) |> 
   arrange(desc(mean_price))
 ```
+
+distribution of prices across burrows
+
+```{r}
+nyc_airbnb |> 
+  filter(
+    price < 1000,
+    room_type == "Entire home/apt",
+    borough == "Manhattan"
+  ) |> 
+  mutate(neighbourhood = fct_reorder(neighbourhood, price)) |> 
+  ggplot(aes(x = neighbourhood, y = price)) +
+  geom_boxplot()
+```
+
+ridge plot for visual comparisons
+```{r}
+nyc_airbnb |> 
+  filter(
+    price < 1000,
+    room_type == "Entire home/apt",
+    borough == "Manhattan"
+  ) |> 
+  mutate(neighbourhood = fct_reorder(neighbourhood, price)) |> 
+  ggplot(aes(x = price, y = neighbourhood)) +
+  geom_density_ridges()
+```
+
+
+## Try to make a map
+
+```{r}
+nyc_airbnb |> 
+  filter(price < 1000,
+         room_type == "Entire home/apt",
+         borough == "Manhattan") |> 
+  ggplot(aes(x = lat, y = long, color = price)) +
+  geom_point()
+  
+```
+
+
+Try using Leaflet for mapping.
+
+```{r}
+library(leaflet)
+
+nyc_airbnb |> 
+  filter(price < 1000,
+         room_type == "Entire home/apt",
+         borough == "Manhattan") |> 
+  sample_n(500) |> 
+  leaflet() |> 
+  addProviderTiles(providers$CartoDB.Positron) |> 
+  addCircleMarkers(~lat, ~long, radius = .5)
+
+```
+
+github documents are static. Leaflet is an interactive file.
+
+
 
