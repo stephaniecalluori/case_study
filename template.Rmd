@@ -1,0 +1,131 @@
+---
+title: "Simple document"
+output: github_document
+---
+
+I'm an R Markdown document! 
+
+```{r}
+devtools::install_github("p8105/p8105.datasets")
+
+library(p8105.datasets)
+library(tidyverse)
+data(nyc_airbnb)
+```
+
+
+```{r}
+nyc_airbnb = 
+  nyc_airbnb |> 
+  janitor::clean_names() |> 
+  rename(borough = neighbourhood_group) |> 
+  mutate(stars = review_scores_location / 2)
+
+view(nyc_airbnb)
+```
+
+
+```{r}
+avg_price_borough <- nyc_airbnb |> 
+  group_by(borough) |> 
+  summarize(avg = mean(price))
+```
+
+
+```{r}
+avg_price_neighbourhood <- nyc_airbnb |> 
+  group_by(borough, neighbourhood) |> 
+  summarize(avg = mean(price))
+```
+
+
+```{r}
+str(nyc_airbnb)
+```
+
+bronx, brooklyn, manhattan, queens, staten island 
+```{r}
+avg_price_bronx_n <- nyc_airbnb |> 
+  filter(borough == "Bronx") |> 
+  group_by(neighbourhood) |> 
+  summarize(avg = mean(price))
+```
+
+
+##Brainstorm questions
+where are Airbnbs most expensive?
+which units have the most availabilty?
+how is review score impacted by location?
+where are airbnbs? bourgh? neighborhood? lag and long?
+
+#Do somne EDA
+
+```{r}
+nyc_airbnb |> 
+  count(borough)
+```
+
+```{r}
+nyc_airbnb |> 
+  group_by(borough) |> 
+  summarize(mean_price = mean(price))
+```
+
+check mean
+```{r}
+nyc_airbnb |> 
+  group_by(borough, room_type) |> 
+  summarize(mean_price = mean(price)) |> 
+  pivot_wider(
+    names_from = room_type,
+    values_from = mean_price
+  )
+```
+
+check median bc it might be skewed distribution 
+```{r}
+nyc_airbnb |> 
+  group_by(borough, room_type) |> 
+  summarize(median_price = median(price)) |> 
+  pivot_wider(
+    names_from = room_type,
+    values_from = median_price
+  )
+```
+
+```{r}
+nyc_airbnb |> 
+  ggplot(aes(x = price)) +
+  geom_histogram() +
+  facet_grid(borough ~ room_type)
+```
+
+
+```{r}
+nyc_airbnb |> 
+  filter(price >= 9500)
+```
+
+```{r}
+nyc_airbnb |>  
+  filter(price < 1000, room_type == "Entire home/apt") |> 
+  ggplot(aes(x = price)) +
+  geom_histogram() +
+  facet_grid(. ~ borough)
+```
+
+```{r}
+nyc_airbnb |> 
+  filter(
+    price < 1000,
+    room_type == "Entire home/apt",
+    borough == "Manhattan"
+  ) |> 
+  group_by(neighbourhood) |> 
+  summarize(
+    n_apt = n(),
+    mean_price = mean(price)
+  ) |> 
+  arrange(desc(mean_price))
+```
+
